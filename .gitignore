@@ -36,6 +36,7 @@ dist/
 nbproject/
 serialize/
 build.xml
+docs/
 
 #################
 ## Visual Studio
