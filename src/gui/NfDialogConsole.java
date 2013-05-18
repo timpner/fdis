@@ -1,0 +1,390 @@
+package gui;
+
+import control.DefaultController;
+import fd.FDep;
+import fd.SynRelation;
+import java.beans.PropertyChangeEvent;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.SortedSet;
+import javax.swing.JOptionPane;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import org.jdesktop.application.Action;
+
+/**
+ * <code>NfDialog</code> displays a preview of the results of a normalization
+ * process, including all steps that led to the result.
+ *
+ * @author Julian Timpner <j.timpner@tu-bs.de>
+ * @version 1.0
+ */
+public class NfDialogConsole extends javax.swing.JDialog implements IView {
+
+    /** Compiler-generated serial version identifier. */
+    private static final long serialVersionUID = 8781564177864639624L;
+    /** The MVC controller. */
+    private DefaultController controller = null;
+    /** The parent frame this dialog belongs to. */
+    private java.awt.Frame parent = null;
+    public PrintStream out;
+
+    /** Constructor specifying a parent frame and a MVC controller. */
+    public NfDialogConsole(java.awt.Frame parent, DefaultController controller) {
+        super(parent);
+
+        this.parent = parent;
+        this.controller = controller;
+
+        initComponents();
+
+        /*
+         * Set output stream to this dialog.
+         */
+        out = new PrintStream(new OutputStream() {
+
+            StringBuilder tmp = new StringBuilder();
+
+            @Override
+            public void write(int arg0) throws IOException {
+                tmp.append((char) arg0);
+                NfDialogConsole.this.consoleArea.setText(tmp.toString());
+            }
+        });
+
+        System.setOut(NfDialogConsole.this.out);
+
+    }
+
+    @Override
+    public void modelPropertyChange(final PropertyChangeEvent evt) {
+
+        /* 
+         * The set of normalized relations has changed. Insert all relations
+         * into the tree.
+         */
+        if (evt.getPropertyName().equals(
+                DefaultController.ELEMENT_NORMALIZATION_PROPERTY)) {
+            SortedSet<SynRelation> normalizedRelations =
+                    (SortedSet<SynRelation>) evt.getNewValue();
+
+            // Prepare Tree
+            DefaultMutableTreeNode rootNode = null;
+            DefaultMutableTreeNode node = null;
+            DefaultMutableTreeNode childNode = null;
+
+            DefaultTreeModel model = (DefaultTreeModel) relationsTree.getModel();
+            rootNode = (DefaultMutableTreeNode) model.getRoot();
+
+            for (SynRelation rel : normalizedRelations) {
+                node = new DefaultMutableTreeNode(rel);
+                SortedSet<String> columns = rel.getColumns();
+                for (String col : columns) {
+                    childNode = new DefaultMutableTreeNode(col);
+                    node.add(childNode);
+                }
+                rootNode.add(node);
+            }
+
+            TreePath path = new TreePath(rootNode);
+            relationsTree.expandPath(path);
+            relationsTree.setModel(model);
+            relationsTree.setRootVisible(false);
+        /*
+         * A normalized relation was renamed.
+         */
+        } else if (evt.getPropertyName().equals(
+                DefaultController.ELEMENT_NORMALIZED_NAME_PROPERTY)) {
+        }
+    }
+
+    /**
+     * Commits the normalized relations.
+     */
+    @Action
+    public void commit() {
+        String ls = System.getProperty("line.separator");
+        int n = JOptionPane.showConfirmDialog(this,
+                "The normalization cannot be undone." + ls +
+                "Are you certain you want to proceed?",
+                "Please Confirm",
+                JOptionPane.OK_CANCEL_OPTION);
+
+        if (n == JOptionPane.OK_OPTION) {
+            controller.commitNormalization();
+            dispose();
+        } else {
+            // Do nothing
+            //cancel();
+        }
+    }
+
+    /**
+     * Disposes of this context once it is no longer
+     * referenced.
+     */
+    @Action
+    public void cancel() {
+        controller.cancelNormalization();
+        dispose();
+    }
+
+    /**
+     * Renames a selected relation.
+     */
+    @Action
+    public void rename() {
+        String ls = System.getProperty("line.separator");
+        String relationName = null;
+        relationName = (String) JOptionPane.showInputDialog(
+                null,
+                "Please insert a new name for the relation:" + ls,
+                "New Name",
+                JOptionPane.QUESTION_MESSAGE);
+
+        controller.changeElementNormalizedName(relationName);
+        relationsTree.repaint();
+    }
+
+    /** This method is called from within the constructor to
+     * initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        separator = new javax.swing.JSeparator();
+        cancelButton = new javax.swing.JButton();
+        descLabel = new javax.swing.JLabel();
+        commitButton = new javax.swing.JButton();
+        renameButton = new javax.swing.JButton();
+        splitPaneHorizontal = new javax.swing.JSplitPane();
+        scrollPaneTree = new javax.swing.JScrollPane();
+        relationsTree = new javax.swing.JTree();
+        scrollPaneTable = new javax.swing.JScrollPane();
+        fdTable = new javax.swing.JTable();
+        consoleScrollPane = new javax.swing.JScrollPane();
+        consoleArea = new javax.swing.JTextArea();
+        consoleLabel = new javax.swing.JLabel();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(control.FDISApp.class).getContext().getResourceMap(NfDialogConsole.class);
+        setTitle(resourceMap.getString("NfDialogConsoleForm.title")); // NOI18N
+        setName("NfDialogConsoleForm"); // NOI18N
+
+        separator.setName("separator"); // NOI18N
+
+        javax.swing.ActionMap actionMap = org.jdesktop.application.Application.getInstance(control.FDISApp.class).getContext().getActionMap(NfDialogConsole.class, this);
+        cancelButton.setAction(actionMap.get("cancel")); // NOI18N
+        cancelButton.setText(resourceMap.getString("cancelButton.text")); // NOI18N
+        cancelButton.setName("cancelButton"); // NOI18N
+
+        descLabel.setText(resourceMap.getString("descLabel.text")); // NOI18N
+        descLabel.setName("descLabel"); // NOI18N
+
+        commitButton.setAction(actionMap.get("commit")); // NOI18N
+        commitButton.setName("commitButton"); // NOI18N
+
+        renameButton.setAction(actionMap.get("rename")); // NOI18N
+        renameButton.setText(resourceMap.getString("renameButton.text")); // NOI18N
+        renameButton.setName("renameButton"); // NOI18N
+
+        splitPaneHorizontal.setName("splitPaneHorizontal"); // NOI18N
+
+        scrollPaneTree.setName("scrollPaneTree"); // NOI18N
+
+        relationsTree.setName("relationsTree"); // NOI18N
+        relationsTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                relationsTreeValueChanged(evt);
+            }
+        });
+        scrollPaneTree.setViewportView(relationsTree);
+        DefaultTreeCellRenderer renderer = new SchemaTreeCellRenderer();
+        relationsTree.setCellRenderer(renderer);
+        relationsTree.setShowsRootHandles(true);
+        DefaultTreeModel model = (DefaultTreeModel) relationsTree.getModel();
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Keine Verbindung");
+        model.setRoot(rootNode);
+        model.reload();
+
+        splitPaneHorizontal.setLeftComponent(scrollPaneTree);
+
+        scrollPaneTable.setName("scrollPaneTable"); // NOI18N
+
+        fdTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "LHS", "RHS"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        fdTable.setName("fdTable"); // NOI18N
+        fdTable.getTableHeader().setReorderingAllowed(false);
+        scrollPaneTable.setViewportView(fdTable);
+        fdTable.getColumnModel().getColumn(0).setHeaderValue(resourceMap.getString("fdTable.columnModel.title0")); // NOI18N
+        fdTable.getColumnModel().getColumn(1).setHeaderValue(resourceMap.getString("fdTable.columnModel.title1")); // NOI18N
+
+        splitPaneHorizontal.setRightComponent(scrollPaneTable);
+
+        consoleScrollPane.setName("consoleScrollPane"); // NOI18N
+
+        consoleArea.setColumns(20);
+        consoleArea.setRows(5);
+        consoleArea.setName("consoleArea"); // NOI18N
+        consoleScrollPane.setViewportView(consoleArea);
+
+        consoleLabel.setLabelFor(consoleArea);
+        consoleLabel.setText(resourceMap.getString("consoleLabel.text")); // NOI18N
+        consoleLabel.setName("consoleLabel"); // NOI18N
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(splitPaneHorizontal, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 465, Short.MAX_VALUE)
+                    .addComponent(consoleScrollPane, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 465, Short.MAX_VALUE)
+                    .addComponent(separator, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 465, Short.MAX_VALUE)
+                    .addComponent(descLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 465, Short.MAX_VALUE)
+                    .addComponent(renameButton, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(consoleLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 225, Short.MAX_VALUE)
+                        .addComponent(commitButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(cancelButton)))
+                .addContainerGap())
+        );
+
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {cancelButton, commitButton});
+
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(descLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(splitPaneHorizontal, javax.swing.GroupLayout.DEFAULT_SIZE, 149, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(renameButton)
+                .addGap(7, 7, 7)
+                .addComponent(separator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(14, 14, 14)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(cancelButton)
+                        .addComponent(commitButton))
+                    .addComponent(consoleLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(consoleScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    /**
+     * Handles tree value changes from the tree that displays the normalized
+     * relation and its attributes.
+     *
+     * @param evt event created by selecting another node
+     */
+    private void relationsTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_relationsTreeValueChanged
+
+        DefaultTreeModel model = (DefaultTreeModel) relationsTree.getModel();
+
+        boolean isRoot;
+        boolean isLeaf;
+
+        // Get formerly selected node.
+        TreePath oldPath = evt.getOldLeadSelectionPath();
+        if (oldPath != null) {
+            DefaultMutableTreeNode oldNode =
+                    (DefaultMutableTreeNode) (oldPath.getLastPathComponent());
+            if (oldNode != null) {
+
+                isRoot = relationsTree.getModel().getRoot().equals(oldNode);
+                isLeaf = model.isLeaf(oldNode);
+
+                if (!isLeaf && !isRoot) {
+                    // Remove node as a model from the controller.
+                    Object oldNodeInfo = oldNode.getUserObject();
+                    SynRelation table = (SynRelation) oldNodeInfo;
+                    controller.removeModel(table);
+                }
+            }
+        }
+
+        // Get selected node.
+        DefaultMutableTreeNode node =
+                (DefaultMutableTreeNode) relationsTree.getLastSelectedPathComponent();
+
+        /* If nothing is selected */
+        if (node == null) {
+            return;
+        }
+
+        /* Retrieves the node that was selected. */
+        Object nodeInfo = node.getUserObject();
+
+        /* Reacts to the node selection. */
+
+        isRoot = relationsTree.getModel().getRoot().equals(node);
+        isLeaf = model.isLeaf(node);
+
+        if (!isLeaf && !isRoot) {
+            renameButton.setEnabled(true);
+
+            SynRelation table = (SynRelation) nodeInfo;
+
+            controller.addModel(table);
+
+            FDTableModel tableModel = new FDTableModel();
+            tableModel.removeAllColumns();
+            tableModel.addColumn("LHS");
+            tableModel.addColumn("RHS");
+
+            for (FDep fd : table.getFdeps()) {
+                tableModel.addRow(fd.getLeftSide(), fd.getRightSide());
+            }
+
+            fdTable.setModel(tableModel);
+
+        } else {
+            renameButton.setEnabled(false);
+        }
+}//GEN-LAST:event_relationsTreeValueChanged
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton cancelButton;
+    private javax.swing.JButton commitButton;
+    private javax.swing.JTextArea consoleArea;
+    private javax.swing.JLabel consoleLabel;
+    private javax.swing.JScrollPane consoleScrollPane;
+    private javax.swing.JLabel descLabel;
+    private javax.swing.JTable fdTable;
+    private javax.swing.JTree relationsTree;
+    private javax.swing.JButton renameButton;
+    private javax.swing.JScrollPane scrollPaneTable;
+    private javax.swing.JScrollPane scrollPaneTree;
+    private javax.swing.JSeparator separator;
+    private javax.swing.JSplitPane splitPaneHorizontal;
+    // End of variables declaration//GEN-END:variables
+}
