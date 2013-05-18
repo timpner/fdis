@@ -1,0 +1,7 @@
+Das 
+
+Informationssystem für funktionale Abhängigkeiten
+
+(engl. functional dependency information system, kurz FDIS)
+
+ermöglicht die Visualisierung und Manipulation funktionaler Abhängigkeiten in PostgreSQL-Datenbanken, sowie deren automatische Normalisierung.
