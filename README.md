@@ -2,7 +2,7 @@ fdis
 ====
 
 Functional Dependency Information System
---------------
+-----------------------------------------
 
 Allows visualization and manipulation of functional dependencies (FDs) in PostgreSQL databases. fdis also support the automatic normalization to the user defined normal form of the database.
 
